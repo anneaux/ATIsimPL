@@ -22,8 +22,7 @@ function action_2drv(b::Beam, p::Vector{T}, t::ComplexF64) where T<:Number
     # drv = (dSdt(t+prec) - dSdt(t-prec))/(2*prec) 
     # A_drv(t) = -E(b)(t)
 	# 1/2 (2 p Derivative[1][A][t] + 2 A[t] Derivative[1][A][t])
-    return t-> -E(b)(t) .* (p .+ A(b)(t))
-
+    return sum(-E(b)(t) .* p) + sum(E(b)(t) .* A(b)(t))
 end;
 
 

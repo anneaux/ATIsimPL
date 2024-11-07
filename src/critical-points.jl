@@ -1,3 +1,4 @@
+
 using NLsolve
 using Sobol
 
@@ -37,18 +38,13 @@ function find_saddles_sobol(drv::Function,
     
     t_seq = SobolSeq(reim(tmin),reim(tmax))
 
-	for i in 1:N
+    for i in 1:N
         t0 = Sobol.next!(t_seq)
-#         @show t0
         t0 = [t0[1]; t0[2]]
 
         ts = solve_first_derivative(drv, t0, roundDigits) 
-#         @show ts
 #         ### check conditons and deposit in array
-        if !isnothing(ts) # check_sp(b, tSP,trSP, tt_minimal = tt_minimal) == true && 
-#             in(tSP, t_cd) && # maybe I want this to be an opton
-#             in(trSP, tr_cd)
-            # &&new
+        if !isnothing(ts)
             ts_r = round(ts, digits=roundDigits)
             if real(ts_r) == 0.
                 push!(saddles, 0. + imag(ts_r)*im)
@@ -58,43 +54,7 @@ function find_saddles_sobol(drv::Function,
         end
     end
 
-#     unique!( ts -> real(ts)==0 ? ts : ts, saddles)
     unique!(ts -> round(ts, digits = roundDigits), saddles)
     sort!(saddles, by = x -> real(x))
     return saddles
 end;
-
-# import Base.isequal
-# isequal(c1::ComplexF64,c2::ComplexF64) = ==(real(c1), real(c2)) && ==(imag(c1), imag(c2))
-# Base.hash(c::ComplexF64, h::UInt) = hash(reim(c), h)
-
-
-# function solve_first_and_second_derivative(drv::Function, drv2::Function,
-#         t0v0::Vector{Float64},
-#         roundDigits::Int64=5)
-
-#     try
-#     ### using NLsolve
-#         function foldeqs!(F, x)
-#             F[1] = real(drv(x[1]+x[2]*im, x[3]+ x[4]*im))
-#             F[2] = imag(drv(x[1]+x[2]*im, x[3]+ x[4]*im))
-#             F[3] = real(drv2(x[1]+x[2]*im, x[3]+ x[4]*im))
-#             F[4] = imag(drv2(x[1]+x[2]*im, x[3]+ x[4]*im))
-#         end
-
-#         result = nlsolve(foldeqs!, t0v0)    
-#         @show result
-#         if converged(result)
-#             ts = result.zero[1] + im*result.zero[2]
-#             vs = result.zero[3] + im*result.zero[4]
-# #             tiSP = round(tiSP, digits = roundDigits)
-#             return ts, vs
-#         else
-#             return nothing
-#         end
-#     catch e
-#         println("Error in solve_foldeqs(): $e")
-#         return nothing
-#     end
-# end
-
