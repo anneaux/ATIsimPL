@@ -165,7 +165,7 @@ function integrate_thimble(S::Function,
     lattice, weights = gausslegendre(n)
 
     function integrand(pp, p1, p2)
-        return prefactor(mapping(pp, p1, p2)) * jacobian(pp, p1, p2) * exp(im * S(mapping(pp, p1, p2)))    
+        return prefactor(mapping(pp, p1, p2)) * jacobian(pp, p1, p2) * exp(im * S(mapping(pp, p1, p2))) 
     end
 
     sum = 0.
