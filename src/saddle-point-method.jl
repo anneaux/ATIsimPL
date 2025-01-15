@@ -17,10 +17,10 @@ function is_contributing(ts::ComplexF64, S::Function, tmin::ComplexF64, tmax::Co
     S_saddle = S(ts)
     con_S_saddle_real = Contour.contour(collect(treals), collect(timags), real.(Svals), real.(S_saddle))
     for curve in con_S_saddle_real.lines              
-        saddle_ip = crosses_point(curve, Point(reim(ts)...), crossthresh)
+        saddle_ip = ContourIntersection.crosses_point(curve, Point(reim(ts)...), crossthresh)
         ### filter for those level lines that actually intersect the saddle point
         if !(saddle_ip==false)             
-            saddle_ip = closest_intersection(saddle_ip, curve, Point(reim(ts)...), crossthresh)
+            saddle_ip = ContourIntersection.closest_intersection(saddle_ip, curve, Point(reim(ts)...), crossthresh)
 #                 ### disect curve
             c1 = Curve2(curve.vertices[1:saddle_ip+1])
             c2 = Curve2(curve.vertices[saddle_ip+1:end])
@@ -28,7 +28,7 @@ function is_contributing(ts::ComplexF64, S::Function, tmin::ComplexF64, tmax::Co
             for c in [c1,c2]
                 actiondiff = S(complex(c.vertices[minimum([5, length(c.vertices)])]...)) - S(ts)
                 if imag(-actiondiff) > 0 # ascent lines
-                    if !isempty(intersection(c, real_axis)) 
+                    if !isempty(ContourIntersection.intersection(c, real_axis)) 
                         relevant = true
                     end
                 end
