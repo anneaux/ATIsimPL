@@ -33,5 +33,9 @@ The algorithm is adapted (and nicely explained) on [Job Feldbrugge's website](ht
 
 (*) the gradient will be normalised if its norm is greater than `gradnthreshold`.
 
+Example of an integration domain flow, for a monochromatic driving field:
+
+https://github.com/user-attachments/assets/c6d8b8a7-610d-476f-8072-16e5decc6c03
+
 
 
