@@ -46,11 +46,12 @@ function find_saddles_sobol(drv::Function,
 #         ### check conditons and deposit in array
         if !isnothing(ts)
             ts_r = round(ts, digits=roundDigits)
-            if real(ts_r) == 0.
-                push!(saddles, 0. + imag(ts_r)*im)
-            else
-                push!(saddles, ts_r)
-            end
+
+            push!(saddles, complex(
+                real(ts_r)==0 ? 0. : real(ts_r),
+                imag(ts_r)==0 ? 0. : imag(ts_r)    
+                ))
+
         end
     end
 
@@ -58,3 +59,5 @@ function find_saddles_sobol(drv::Function,
     sort!(saddles, by = x -> real(x))
     return saddles
 end;
+
+nothing
