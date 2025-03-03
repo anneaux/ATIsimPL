@@ -1,8 +1,8 @@
 using Contour, GeometryBasics
 
-function is_contributing(ts::ComplexF64, S::Function, tmin::ComplexF64, tmax::ComplexF64)
-    timags = range(imag(tmin), stop = imag(tmax), length = 100)
-    treals = range(real(tmin), stop = real(tmax), length = 100)
+function is_contributing(ts::ComplexF64, S::Function, tmin::ComplexF64, tmax::ComplexF64, Nt::Int64=100)
+    timags = range(imag(tmin), stop = imag(tmax), length = Nt)
+    treals = range(real(tmin), stop = real(tmax), length = Nt)
     tlength = real(tmax-tmin)
     
     Δi = timags[2]-timags[1]
