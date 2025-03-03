@@ -3,6 +3,7 @@ module ContourIntersection
 using Contour
 using StaticArrays
 using GeometryBasics
+using LinearAlgebra
 
 
 export crosses_point, intersection, closest_intersection
@@ -16,46 +17,73 @@ struct Line
 end
 
 
-
-function crosses_point(line::Line, point::Point, tolerance::Float64=0.25)
-    if line.s.x <= line.e.x
-        sx = line.s.x
-        ex = line.e.x
-    else
-        ex = line.s.x
-        sx = line.e.x
-    end
-
-    if line.s.y <= line.e.y
-        sy = line.s.y
-        ey = line.e.y
-    else
-        ey = line.s.y
-        sy = line.e.y
-    end
-
-    sx -= tolerance*abs(sx-ex)
-    ex += tolerance*abs(sx-ex)
-    sy -= tolerance*abs(sy-ey)
-    ey += tolerance*abs(sy-ey)
-
-    xbound = (sx <= point[1] <= ex)
-    ybound = (sy <= point[2] <= ey)
-    return (xbound && ybound)
+# https://github.com/JuliaGeometry/Meshes.jl/blob/master/src/predicates/iscollinear.jl#L20 ### I could look into this at some point
+function iscollinear(a::Tuple{T,T}, b::Tuple{T,T}, p::Tuple{T,T}, threshold = 1e-3) where T
+    cross = (p[1] - a[1])*(b[2]-a[2]) - (p[2]-a[2])*(b[1]-a[1])
+    return abs(cross) < threshold
 end
 
-### maybe these two following functions could be united actually
-function crosses_point(c::Curve2, p::Point, tolerance::Float64=0.25)
+function crosses_point(a::Tuple{T,T}, b::Tuple{T,T}, p::Tuple{T,T}, threshold::Float64=1e-3) where T
+        ab = b .- a
+        ap = p .- a
+    
+    return iscollinear(a,b,p, threshold) && zero(T) <= LinearAlgebra.dot(ab,ap) <= LinearAlgebra.dot(ab,ab)
+
+end
+
+function crosses_point(c::Curve2, p::Point, tolerance::Float64=1e-3)
     crossing = false
 
     for i in 1:(length(c.vertices)-1)
-        l = Line(c.vertices[i], c.vertices[i+1])
-        if crosses_point(l, p , tolerance)
+#         l = Line(c.vertices[i], c.vertices[i+1])
+        if crosses_point(c.vertices[i], c.vertices[i+1], p.data , tolerance)
             return i #crossing = true
         end
     end 
     return crossing
 end
+
+
+# function crosses_point(line::Line, point::Point, tolerance::Float64=0.25)
+#     if line.s.x <= line.e.x
+#         sx = line.s.x
+#         ex = line.e.x
+#     else
+#         ex = line.s.x
+#         sx = line.e.x
+#     end
+
+#     if line.s.y <= line.e.y
+#         sy = line.s.y
+#         ey = line.e.y
+#     else
+#         ey = line.s.y
+#         sy = line.e.y
+#     end
+
+#     sx -= tolerance*abs(sx-ex)
+#     ex += tolerance*abs(sx-ex)
+#     sy -= tolerance*abs(sy-ey)
+#     ey += tolerance*abs(sy-ey)
+
+#     xbound = (sx <= point[1] <= ex)
+#     ybound = (sy <= point[2] <= ey)
+#     return (xbound && ybound)
+# end
+
+
+### maybe these two following functions could be united actually
+# function crosses_point(c::Curve2, p::Point, tolerance::Float64=0.25)
+#     crossing = false
+
+#     for i in 1:(length(c.vertices)-1)
+#         l = Line(c.vertices[i], c.vertices[i+1])
+#         if crosses_point(l, p , tolerance)
+#             return i #crossing = true
+#         end
+#     end 
+#     return crossing
+# end
 
 function closest_intersection(ip::Int64, c::Curve2, p::Point, Δinit::Float64)
     ip_new = deepcopy(ip)

@@ -7,7 +7,7 @@ function is_contributing(ts::ComplexF64, S::Function, tmin::ComplexF64, tmax::Co
     
     Δi = timags[2]-timags[1]
     Δr = treals[2]-treals[1]
-    crossthresh = sqrt((Δi)^2 + (Δr)^2)
+    crossthresh = 0.5 # sqrt((Δi)^2 + (Δr)^2)
 
     Svals = [S(tr + im*ti) for tr in treals, ti in timags] 
 
