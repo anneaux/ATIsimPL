@@ -44,30 +44,45 @@ function crosses_point(line::Line, point::Point, tolerance::Float64=0.25)
     return (xbound && ybound)
 end
 
-### maybe these two following functions could be united actually
-function crosses_point(c::Curve2, p::Point, tolerance::Float64=0.25)
-    crossing = false
+### this one somehow sometimes doesn't work. When two lines go next to a point for example, like >>.<
+# function crosses_point(c::Curve2, p::Point, tolerance::Float64=0.25)
+#     crossing = false
 
-    for i in 1:(length(c.vertices)-1)
-        l = Line(c.vertices[i], c.vertices[i+1])
-        if crosses_point(l, p , tolerance)
-            return i #crossing = true
-        end
-    end 
-    return crossing
+#     for i in 1:(length(c.vertices)-1)
+#         l = Line(c.vertices[i], c.vertices[i+1])
+#         if crosses_point(l, p , tolerance)
+#             return i #crossing = true
+#         end
+#     end 
+#     return crossing
+# end
+
+### maybe these two following functions could be united actually
+dist(tup1::Tuple, tup2::Tuple) = norm(tup2.-tup1)
+function crosses_point_2(c::Curve2, p::Point, tolerance::Float64=0.25)
+    minidist, miniidx = findmin([dist(vert,p.data) for vert in c.vertices])
+    
+    if minidist < tolerance
+        return miniidx
+    else
+        return false
+    end
 end
+
 
 function closest_intersection(ip::Int64, c::Curve2, p::Point, Δinit::Float64)
     ip_new = deepcopy(ip)
     n = 1
     Δ = Δinit
+    Δstep = Δ/9
+
     while !(ip_new==false) && n < 10
 #         @show Δ
         ip = ip_new
         ip_new = crosses_point(c, p, Δ)
 #         @show saddle_ip
         n +=1
-        Δ -= 0.1
+        Δ -= Δstep
     end
     ip
 end
