@@ -3,6 +3,7 @@ module ContourIntersection
 using Contour
 using StaticArrays
 using GeometryBasics
+using LinearAlgebra
 
 
 export crosses_point, intersection, closest_intersection
@@ -59,7 +60,7 @@ end
 
 ### maybe these two following functions could be united actually
 dist(tup1::Tuple, tup2::Tuple) = norm(tup2.-tup1)
-function crosses_point_2(c::Curve2, p::Point, tolerance::Float64=0.25)
+function crosses_point(c::Curve2, p::Point, tolerance::Float64=0.25)
     minidist, miniidx = findmin([dist(vert,p.data) for vert in c.vertices])
     
     if minidist < tolerance
