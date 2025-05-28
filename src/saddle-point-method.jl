@@ -1,8 +1,8 @@
 using Contour, GeometryBasics
 
-function is_contributing(ts::ComplexF64, S::Function, tmin::ComplexF64, tmax::ComplexF64)
-    timags = range(imag(tmin), stop = imag(tmax), length = 100)
-    treals = range(real(tmin), stop = real(tmax), length = 100)
+function is_contributing(ts::ComplexF64, S::Function, tmin::ComplexF64, tmax::ComplexF64; Ntimes:Int64=100)
+    timags = range(imag(tmin), stop = imag(tmax), length = Ntimes)
+    treals = range(real(tmin), stop = real(tmax), length = Ntimes)
     tlength = real(tmax-tmin)
     
     Δi = timags[2]-timags[1]
@@ -17,10 +17,10 @@ function is_contributing(ts::ComplexF64, S::Function, tmin::ComplexF64, tmax::Co
     S_saddle = S(ts)
     con_S_saddle_real = Contour.contour(collect(treals), collect(timags), real.(Svals), real.(S_saddle))
     for curve in con_S_saddle_real.lines              
-        saddle_ip = ContourIntersection.crosses_point(curve, Point(reim(ts)...), crossthresh)
+        saddle_ip = ContourIntersection.crosses_point(curve, GeometryBasics.Point(reim(ts)...), crossthresh)
         ### filter for those level lines that actually intersect the saddle point
         if !(saddle_ip==false)             
-            saddle_ip = ContourIntersection.closest_intersection(saddle_ip, curve, Point(reim(ts)...), crossthresh)
+            saddle_ip = ContourIntersection.closest_intersection(saddle_ip, curve, GeometryBasics.Point(reim(ts)...), crossthresh)
 #                 ### disect curve
             c1 = Curve2(curve.vertices[1:saddle_ip+1])
             c2 = Curve2(curve.vertices[saddle_ip+1:end])
