@@ -1,6 +1,7 @@
 using Contour, GeometryBasics
 
-function is_contributing(ts::ComplexF64, S::Function, tmin::ComplexF64, tmax::ComplexF64; Ntimes:Int64=100)
+function is_contributing(ts::ComplexF64, S::Function, tmin::ComplexF64, tmax::ComplexF64;
+    Ntimes::Int64=100 )
     timags = range(imag(tmin), stop = imag(tmax), length = Ntimes)
     treals = range(real(tmin), stop = real(tmax), length = Ntimes)
     tlength = real(tmax-tmin)
