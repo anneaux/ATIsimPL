@@ -1,3 +1,6 @@
+## General note
+We assume the integrand to be of the shape `exp(im S)'.
+
 
 ## Brief explanation of the arguments of the `get_thimble()` function
 
@@ -9,7 +12,8 @@ get_thimble(S::Function, drv::Function, tmin::Float64, tmax::Float64;
     flowstepfactor::Float64 = 2.,
     h_threshold::Float64 = -300.,
     gradnthreshold::Float64 = 1.,
-    subdividethreshold::Float64 = 4.
+    subdividethreshold::Float64 = 4., 
+    flow_bounds:;Vector{Bool}=[true,true]
     )
 
 ``` 
@@ -21,6 +25,7 @@ get_thimble(S::Function, drv::Function, tmin::Float64, tmax::Float64;
 - `h_threshold0`: how deep down into the valley the contour goes
 - `gradnthreshold`: how precise we are around the saddle points (ignore)
 - `subdividethreshold`: how fine we chop the integration domain into pieces (smaller number --> finer)
+- `flow_bounds`: whether to keep the endpoints fixed (flow -> false)
 
 ### slightly longer story
 

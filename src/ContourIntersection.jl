@@ -6,7 +6,7 @@ using GeometryBasics
 using LinearAlgebra
 
 
-export crosses_point, intersection, closest_intersection
+export crosses_point, intersection, closest_intersection, dissect_curve
 
 struct Line
     s::StaticArrays.SVector{2,Float64}
@@ -88,7 +88,19 @@ function closest_intersection(ip::Int64, c::Curve2, p::Point, Δinit::Float64)
     ip
 end
 
+function dissect_curve(zs::ComplexF64, curve::Curve2, ip_guess::Int64, crossthresh::Float64)
+    saddle_ip = closest_intersection(ip_guess, curve, Point(reim(zs)...), crossthresh)
+            
+    if curve.vertices[saddle_ip] == reim(zs)
+        c1 = Curve2(curve.vertices[1:saddle_ip])
+        c2 = Curve2(curve.vertices[saddle_ip:end])             
+    else
+        c1 = Curve2(vcat(curve.vertices[1:saddle_ip-1],reim(zs)))
+        c2 = Curve2(vcat(reim(zs),curve.vertices[saddle_ip+1:end]))
+    end
 
+    return [c1,c2]
+end
 
 function intersection(l1::Line, l2::Line) 
     x1, y1 = l1.s

@@ -6,9 +6,9 @@ function is_contributing(ts::ComplexF64, S::Function, tmin::ComplexF64, tmax::Co
     treals = range(real(tmin), stop = real(tmax), length = Ntimes)
     tlength = real(tmax-tmin)
     
-    Δi = timags[2]-timags[1]
-    Δr = treals[2]-treals[1]
-    crossthresh = sqrt((Δi)^2 + (Δr)^2)
+    # Δi = timags[2]-timags[1]
+    # Δr = treals[2]-treals[1]
+    crossthresh = sqrt((step(timags))^2 + (step(treals))^2)
 
     Svals = [S(tr + im*ti) for tr in treals, ti in timags] 
 
@@ -20,13 +20,15 @@ function is_contributing(ts::ComplexF64, S::Function, tmin::ComplexF64, tmax::Co
     for curve in con_S_saddle_real.lines              
         saddle_ip = ContourIntersection.crosses_point(curve, GeometryBasics.Point(reim(ts)...), crossthresh)
         ### filter for those level lines that actually intersect the saddle point
-        if !(saddle_ip==false)             
-            saddle_ip = ContourIntersection.closest_intersection(saddle_ip, curve, GeometryBasics.Point(reim(ts)...), crossthresh)
-#                 ### disect curve
-            c1 = Curve2(curve.vertices[1:saddle_ip+1])
-            c2 = Curve2(curve.vertices[saddle_ip+1:end])
+        if !(saddle_ip==false)
 
-            for c in [c1,c2]
+            segs = dissect_curve(ts, curve, saddle_ip, crossthresh)          
+#             saddle_ip = ContourIntersection.closest_intersection(saddle_ip, curve, GeometryBasics.Point(reim(ts)...), crossthresh)
+# #                 ### disect curve
+#             c1 = Curve2(curve.vertices[1:saddle_ip+1])
+#             c2 = Curve2(curve.vertices[saddle_ip+1:end])
+
+            for c in segs
                 actiondiff = S(complex(c.vertices[minimum([5, length(c.vertices)])]...)) - S(ts)
                 if imag(-actiondiff) > 0 # ascent lines
                     if !isempty(ContourIntersection.intersection(c, real_axis)) 

@@ -2,7 +2,7 @@ module PLIntegration1D
 
 using LinearAlgebra, FastGaussQuadrature
 
-export get_thimble, integrate_thimble
+export get_thimble, integrate_thimble, dissect_thimbles
 
 mutable struct Point
     coord::Complex
@@ -83,7 +83,7 @@ end;
 function flow_down!(fun::Tuple,
         points::Vector{Point}, simplices::Vector{Index};
         δ::Float64=0.5, # flowstepfactor
-        threshold::Float64=0.5, # for normalisation of thr gradient
+        threshold::Float64=0.5, # for normalisation of the gradient
         h_threshold::Float64=-20.
         )
 
@@ -115,10 +115,11 @@ function get_thimble(S::Function, drv::Function, tmin::Float64, tmax::Float64;
     flowstepfactor::Float64 = 2.,
     h_threshold::Float64 = -300.,
     gradnthreshold::Float64 = 1.,
-    subdividethreshold::Float64 = 4.
+    subdividethreshold::Float64 = 4.,
+    flow_bounds::Vector{Bool}=[true,true]
     )
     
-    (points, simplices) = initialise(real(tmin), real(tmax), Δinit)
+    (points, simplices) = initialise(real(tmin), real(tmax), Δinit, flow_bounds)
    
     for i_flow in 1:Nflow
         flow_down!(( S, drv), points, simplices,
@@ -131,6 +132,42 @@ function get_thimble(S::Function, drv::Function, tmin::Float64, tmax::Float64;
     return points, simplices
 end
 
+
+function dissect_thimbles(points, simplices)
+    active_linesegs = filter(sim->sim.active, simplices)
+
+    thimbles = Vector()
+    visited = falses(length(active_linesegs))
+
+
+    function dfs!(active_linesegs, visited, i_start)
+        stack = [i_start] # "open ends" to explore (= the two point indices of the start line segment)
+        trace = Int[]
+        while !isempty(stack)
+            v = pop!(stack)
+
+            if !visited[v]
+                visited[v] = true
+                push!(trace, v)
+                ### find the index of the next linesegment
+                next = findall(ls->ls.coord[1]==active_linesegs[v].coord[2], active_linesegs)
+                append!(stack, next)
+                prev = findall(ls->ls.coord[2]==active_linesegs[v].coord[1], active_linesegs)
+                append!(stack, prev)
+            end
+        end
+        return trace
+    end 
+
+    for i in 1:length(active_linesegs)
+        if !visited[i]
+            trace = dfs!(active_linesegs, visited, i)
+            push!(thimbles, active_linesegs[trace])
+        end
+    end
+
+    return thimbles
+end
 
 
 ### Integration
