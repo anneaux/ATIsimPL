@@ -4,10 +4,10 @@ using LinearAlgebra, FastGaussQuadrature
 
 export get_thimble, integrate_thimble, dissect_thimbles
 
-mutable struct Point
+mutable struct PointA
     coord::Complex
     active::Bool
-    Point(coord) = new(coord, true)
+    PointA(coord) = new(coord, true)
 end
 
 mutable struct Index
@@ -16,7 +16,7 @@ mutable struct Index
     Index(coord) = new(coord, true)
 end
 
-function subdivide(points::Vector{Point},
+function subdivide(points::Vector{PointA},
         simplices::Vector{Index},
         Δ::Float64)
     
@@ -28,7 +28,7 @@ function subdivide(points::Vector{Point},
             L = points[l].coord
             R = points[r].coord
             if abs(R - L) > Δ
-                push!(points, Point((L + R)/ 2.))
+                push!(points, PointA((L + R)/ 2.))
                 simplices[i].active = false
                 append!(simplices, [Index([l, length(points)]), Index([length(points), r])])
             end 
@@ -37,7 +37,7 @@ function subdivide(points::Vector{Point},
 end
 
 
-function subdivide_rep(points::Vector{Point},
+function subdivide_rep(points::Vector{PointA},
         simplices::Vector{Index},
         δ::Float64)
     n_old = length(simplices)
@@ -55,7 +55,7 @@ end
 function initialise(tmin::Float64, tmax::Float64,
         Δ::Float64, endpoints=[true, true])
     
-    points = [Point(tmin), Point(tmax)]
+    points = [PointA(tmin), PointA(tmax)]
     points[1].active = endpoints[1]
     points[2].active = endpoints[2]
     simplices = [Index([1, 2])]
@@ -81,7 +81,7 @@ function gradN(drv::Function,t::ComplexF64, thresh::Float64=1.)
 end;
 
 function flow_down!(fun::Tuple,
-        points::Vector{Point}, simplices::Vector{Index};
+        points::Vector{PointA}, simplices::Vector{Index};
         δ::Float64=0.5, # flowstepfactor
         threshold::Float64=0.5, # for normalisation of the gradient
         h_threshold::Float64=-20.

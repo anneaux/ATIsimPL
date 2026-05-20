@@ -1,5 +1,5 @@
 #### struct and constructors ###########
-struct BeamTC <: Beam
+struct BeamTCcos <: Beam
 	E01::Float64
 	E02::Float64
 	omega1::Float64
@@ -8,7 +8,7 @@ struct BeamTC <: Beam
 	epsilon2::Float64
 	phi::Float64
 
-	function BeamTC(;Intensity1::Real, Intensity2::Real,
+	function BeamTCcos(;Intensity1::Real, Intensity2::Real,
 		# omega
 		lambda::Real, 
 		r::Int64, s::Int64,
@@ -28,7 +28,7 @@ struct BeamTC <: Beam
 		new(E01,E02,omega1,omega2,epsilon1,epsilon2,phi)
 	end
 
-	function BeamTC(E01::Float64,
+	function BeamTCcos(E01::Float64,
 		E02::Float64,
 		omega1::Float64,
 		omega2::Float64,
@@ -47,20 +47,20 @@ function BeamBETC(;Intensity1::Real, Intensity2::Real,
 	epsilon::Real,
 	phi::Real)
 
-	BeamTC(Intensity1=Intensity1,Intensity2=Intensity2,
+	BeamTCcos(Intensity1=Intensity1,Intensity2=Intensity2,
 		lambda=lambda,
 		r=r,s=s,
 		epsilon1=epsilon,epsilon2=epsilon,
 		phi=phi)
 end
 
-TCycle(b::BeamTC) = 2*pi/b.omega1
+TCycle(b::BeamTCcos) = 2*pi/b.omega1
 
 
 #### field equations ###########
 
 
-function electric_field(b::BeamTC)
+function electric_field(b::BeamTCcos)
 	## Beam Characterization from milo2020biell
 	phi = b.phi
 	epsilon1 = b.epsilon1
@@ -70,17 +70,17 @@ function electric_field(b::BeamTC)
 	epsilon2 = b.epsilon2
 	omega2 = b.omega2 # THIS SHALL NOT BE ZERO!!!! 
 
-	E1(t) = (E01/sqrt(1+epsilon1^2) .* [sin(omega1*t) ; -epsilon1*cos(omega1*t)] )
-	E2(t) = (E02/sqrt(1+epsilon2^2) .* [sin(omega2*t + phi); -epsilon2*cos(omega2*t + phi)] )
+	E1(t) = (E01/sqrt(1+epsilon1^2) .* [0. ; -epsilon1*cos(omega1*t)] )
+	E2(t) = (E02/sqrt(1+epsilon2^2) .* [0. ; -epsilon2*cos(omega2*t + phi)] )
 
 	E(t) = E1(t) + E2(t)
 
 	return t -> E(t)
 end
-E(b::BeamTC) = electric_field(b)
+E(b::BeamTCcos) = electric_field(b)
 
 
-function vector_potential(b::BeamTC)
+function vector_potential(b::BeamTCcos)
 	phi = b.phi
 	epsilon1 = b.epsilon1
 	E01 = b.E01
@@ -92,18 +92,18 @@ function vector_potential(b::BeamTC)
 
 	A01 = E01/omega1/sqrt(1+epsilon1^2) 
 	A02 = E02/omega2/sqrt(1+epsilon2^2)
-	A1(t) = (A01 .* [cos(omega1*t) ; epsilon1 * sin(omega1*t)])
-	A2(t) = (A02 .* [cos(omega2*t + phi); epsilon2 * sin(omega2*t + phi) ])
+	A1(t) = (A01 .* [0. ; epsilon1 * sin(omega1*t)])
+	A2(t) = (A02 .* [0. ; epsilon2 * sin(omega2*t + phi) ])
 
 	A(t) = A1(t) .+ A2(t)
 
 	return t -> A(t)
 end 
-A(b::BeamTC) = vector_potential(b)
+A(b::BeamTCcos) = vector_potential(b)
 
 
 
-function integrated_vector_potential(b::BeamTC)
+function integrated_vector_potential(b::BeamTCcos)
 
 	phi = b.phi
 	epsilon1 = b.epsilon1
@@ -116,18 +116,18 @@ function integrated_vector_potential(b::BeamTC)
 	A01 = E01/omega1/sqrt(1+epsilon1^2) 
 	A02 = E02/omega2/sqrt(1+epsilon2^2)
 
-	integral_over_A1(ti,tr) = (A01 ./ omega1 .* [sin(omega1*tr) - sin(omega1*ti); epsilon1*(-cos(omega1*tr) + cos(omega1 * ti))])
-	integral_over_A2(ti,tr) = (A02 ./ omega2 .* [ sin(omega2*tr + phi) - sin(omega2*ti + phi) ; epsilon2*(-cos(omega2*tr + phi) + cos(omega2*ti + phi))])
+	integral_over_A1(ti,tr) = (A01 ./ omega1 .* [0. ; epsilon1*(-cos(omega1*tr) + cos(omega1 * ti))])
+	integral_over_A2(ti,tr) = (A02 ./ omega2 .* [ 0. ; epsilon2*(-cos(omega2*tr + phi) + cos(omega2*ti + phi))])
 
 	integral_over_A(ti,tr) = integral_over_A1(ti,tr) .+ integral_over_A2(ti,tr)
 
 	return (ti,tr) -> integral_over_A(ti,tr)
 end 
 
-IA(b::BeamTC) = integrated_vector_potential(b)
+IA(b::BeamTCcos) = integrated_vector_potential(b)
 
 
-function integrated_squared_vector_potential(b::BeamTC)
+function integrated_squared_vector_potential(b::BeamTCcos)
     phi = b.phi
     epsilon1 = b.epsilon1
     E01 = b.E01
@@ -153,14 +153,14 @@ function integrated_squared_vector_potential(b::BeamTC)
     (ti,tr) -> (term1(ti,tr) + term2(ti,tr) + term3(ti,tr) + term4(ti,tr) + term5(ti,tr) + term6(ti,tr) + term7(ti,tr)) / (4 * omega1 * (omega1 - omega2) * omega2 * (omega1 + omega2))
 
 end
-IAsq(b::BeamTC) = integrated_squared_vector_potential(b)
+IAsq(b::BeamTCcos) = integrated_squared_vector_potential(b)
 
 
 
 ######################
 ### indefinite integrals (required for ATI)
 
-function integrated_vector_potential_indefinite(b::BeamTC)
+function integrated_vector_potential_indefinite(b::BeamTCcos)
 
 	phi = b.phi
 	epsilon1 = b.epsilon1
@@ -173,19 +173,19 @@ function integrated_vector_potential_indefinite(b::BeamTC)
 	A01 = E01/omega1/sqrt(1+epsilon1^2) 
 	A02 = E02/omega2/sqrt(1+epsilon2^2)
 
-	integral_over_A1(t) = (A01 ./ omega1 .* [sin(omega1*t); epsilon1*(-cos(omega1*t))])
-	integral_over_A2(t) = (A02 ./ omega2 .* [ sin(omega2*t + phi) ; epsilon2*(-cos(omega2*t + phi) )])
+	integral_over_A1(t) = (A01 ./ omega1 .* [0. ; epsilon1*(-cos(omega1*t))])
+	integral_over_A2(t) = (A02 ./ omega2 .* [0. ; epsilon2*(-cos(omega2*t + phi) )])
 
 	integral_over_A(t) = integral_over_A1(t) .+ integral_over_A2(t)
 
 	return t -> integral_over_A(t)
 end 
 
-IA_indefinite(b::BeamTC) = integrated_vector_potential_indefinite(b)
+IA_indefinite(b::BeamTCcos) = integrated_vector_potential_indefinite(b)
 
 
 
-function integrated_squared_vector_potential_indefinite(b::BeamTC)
+function integrated_squared_vector_potential_indefinite(b::BeamTCcos)
     phi = b.phi
     epsilon1 = b.epsilon1
     E01 = b.E01
@@ -207,10 +207,10 @@ function integrated_squared_vector_potential_indefinite(b::BeamTC)
 
 
 end
-IAsq_indefinite(b::BeamTC) = integrated_squared_vector_potential_indefinite(b)
+IAsq_indefinite(b::BeamTCcos) = integrated_squared_vector_potential_indefinite(b)
 
 
-function Upond(b::BeamTC)
+function Upond(b::BeamTCcos)
 	A01 = b.E01/b.omega1
 	A02 = b.E02/b.omega2
 

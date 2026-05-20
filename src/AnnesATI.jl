@@ -1,10 +1,11 @@
 # module AnnesATI
 
 
-include("src/constants-units.jl");
-include("src/equations-using-beams.jl")
-include("src/Beams/BeamTC.jl")
-include("src/Beams/BeamMono.jl")
+include("constants-units.jl");
+include("equations-using-beams.jl")
+include("Beams/BeamTC.jl")
+include("Beams/BeamOTC.jl")
+include("Beams/BeamMono.jl")
 
 nothing
 # end

@@ -16,13 +16,15 @@ function is_contributing(ts::ComplexF64, S::Function, tmin::ComplexF64, tmax::Co
 
     relevant = false
     S_saddle = S(ts)
+
+
     con_S_saddle_real = Contour.contour(collect(treals), collect(timags), real.(Svals), real.(S_saddle))
     for curve in con_S_saddle_real.lines              
         saddle_ip = ContourIntersection.crosses_point(curve, GeometryBasics.Point(reim(ts)...), crossthresh)
         ### filter for those level lines that actually intersect the saddle point
         if !(saddle_ip==false)
 
-            segs = dissect_curve(ts, curve, saddle_ip, crossthresh)          
+            segs = ContourIntersection.dissect_curve(ts, curve, saddle_ip, crossthresh)          
 #             saddle_ip = ContourIntersection.closest_intersection(saddle_ip, curve, GeometryBasics.Point(reim(ts)...), crossthresh)
 # #                 ### disect curve
 #             c1 = Curve2(curve.vertices[1:saddle_ip+1])
@@ -69,6 +71,106 @@ function integrate_SPM(S::Function, drv::Function, drv2::Function,
         end
     end
     return int_SPM
+end
+
+
+
+#### just in case I want to plot action landscapes
+### I'm not sure what the difference is between the two implementations below
+
+# function get_const_Re_lines(ts::ComplexF64, 
+#     S::Function, 
+#     treals::AbstractRange, timags::AbstractRange, 
+#     Svals)
+    
+#     Δi = timags[2]-timags[1]
+#     Δr = treals[2]-treals[1]
+#     crossthresh = sqrt((Δi)^2 + (Δr)^2) +0.5    
+#     real_axis = Curve2([(minimum(treals)-TC, 0.), (maximum(treals)+TC, 0.)])    
+    
+    
+#     sa_lines = Vector{Tuple{Vector{Float64}, Vector{Float64}}}()
+#     sd_lines = Vector{Tuple{Vector{Float64}, Vector{Float64}}}()
+
+#     for ts in saddles
+#         relevant = false
+# #         @show ts
+#         S_saddle = S(ts)
+#         con_S_saddle_real = Contour.contour(collect(treals), collect(timags), real.(Svals), real.(S_saddle))
+
+#         for curve in con_S_saddle_real.lines
+#             ### plot all level lines at the saddle point
+#             saddle_ip = crosses_point(curve, Point(reim(ts)...), crossthresh)
+#             if !(saddle_ip==false)             
+#                 saddle_ip = closest_intersection(saddle_ip, curve, Point(reim(ts)...), crossthresh)
+# #                 ### disect curve
+#                 c1 = Curve2(curve.vertices[1:saddle_ip+1])
+#                 c2 = Curve2(curve.vertices[saddle_ip+1:end])
+#                 for c in [c1,c2]
+#                     actiondiff = S(complex(c.vertices[minimum([5, length(c.vertices)])]...)) - S(ts)
+#                     if -imag(actiondiff) < 0 
+#                         ### descent lines
+#                         if imag(ts) > 0.15*TC
+#                             # (non-contributing, fakey)
+#                             push!(sd_lines,Contour.coordinates(c) )
+#                         else
+#                             # contributing
+#                             push!(sd_lines,Contour.coordinates(c) )
+#                         end
+#                     else
+#                         ### ascent lines
+#                         crosses_real_axis = !isempty(intersection(c, real_axis)) 
+#                         if crosses_real_axis
+#                             relevant = true
+#                             push!(sa_lines,Contour.coordinates(c) )
+#                         else
+#                            push!(sa_lines,Contour.coordinates(c) )
+#                         end
+#                     end
+#                 end
+#             end 
+#         end
+# #         @show relevant
+#     end
+    
+#     return sa_lines, sd_lines
+# end
+
+# using ContourIntersection
+
+function get_const_Re_lines(ts::ComplexF64, 
+    S::Function, 
+    treals::AbstractRange, timags::AbstractRange, 
+    Svals)
+
+    sa_lines = Vector{Tuple{Vector{Float64}, Vector{Float64}}}()
+    sd_lines = Vector{Tuple{Vector{Float64}, Vector{Float64}}}()
+
+    relevant = false
+    S_saddle = S(ts)
+    con_S_saddle_real = Contour.contour(collect(treals), collect(timags), real.(Svals), real.(S_saddle))
+    crossthresh = sqrt(step(timags)^2 + step(treals)^2)
+    real_axis = Curve2([(real(minimum(treals))-TC, 0.), (real(maximum(treals))+TC, 0.)])    
+    
+    for curve in con_S_saddle_real.lines
+        saddle_ip = ContourIntersection.crosses_point(curve, GeometryBasics.Point(reim(ts)...), crossthresh)
+        if !(saddle_ip==false)
+            segs = ContourIntersection.dissect_curve(ts, curve, saddle_ip, crossthresh)
+            for c in segs
+                S_diff = S(complex(c.vertices[minimum([5, length(c.vertices)])]...)) - S(ts)
+                if -imag(S_diff) < 0 ### descent line
+                    push!(sd_lines, Contour.coordinates(c) )
+                else ### ascent line
+                    if !isempty(ContourIntersection.intersection(c, real_axis)) 
+#                             println("This saddle point is indeed relevant!")
+                    relevant = true
+                    end
+                    push!(sa_lines, Contour.coordinates(c) )
+                end
+            end
+        end 
+    end        
+    return sa_lines, sd_lines, relevant
 end
 
 

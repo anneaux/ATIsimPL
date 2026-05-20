@@ -12,7 +12,7 @@ function action(b::Beam, p::Vector{T}, t::ComplexF64) where T<:Number
 end
 
 function action_drv(b::Beam, p::Vector{T}, t::ComplexF64) where T<:Number
-    Ip + 0.5 * (sum(p.*p) +  2 * sum(p .* A(b)(t)) + sum(A(b)(t).*A(b)(t) ))
+    Ip + 0.5 * (sum(p.*p) +  2 * sum(p .* A(b)(t)) + sum(A(b)(t).* A(b)(t) ))
 end;
 
 function action_2drv(b::Beam, p::Vector{T}, t::ComplexF64) where T<:Number
