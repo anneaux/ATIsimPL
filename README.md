@@ -1,4 +1,10 @@
+# ATIsimPL -- Solving the integral for the strong-field tunnel ionisation amplitude, based on Picard-Lefschetz theory
+
 ## General note
+This repository contains the code used to evaluate the one-dimensional integral that calculations the ionisation amplitude for direct photoelectrons in an above-threshold ionisation setup.
+
+
+## Implementation note
 We assume the integrand to be of the shape `exp(im S)'.
 
 
